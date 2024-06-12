@@ -2,6 +2,7 @@ import { ArrowButton } from 'components/arrow-button';
 import { Button } from 'components/button';
 import { RadioGroup } from 'components/radio-group';
 import { Select } from '../select';
+import { Separator } from '../separator';
 import styles from './ArticleParamsForm.module.scss';
 // --const
 import {
@@ -102,6 +103,7 @@ export const ArticleParamsForm = ({
 						onChange={(selectFontColor) => setFontColor(selectFontColor)}
 						title='цвет шрифта'
 					/>
+					<Separator />
 					<Select
 						options={backgroundColors}
 						selected={selectBackgroundColor}
