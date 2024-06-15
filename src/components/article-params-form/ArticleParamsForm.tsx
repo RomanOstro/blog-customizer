@@ -3,8 +3,9 @@ import { Button } from 'components/button';
 import { RadioGroup } from 'components/radio-group';
 import { Select } from '../select';
 import { Separator } from '../separator';
+import clsx from 'clsx';
 import styles from './ArticleParamsForm.module.scss';
-// --const
+import { Text } from '../text';
 import {
 	ArticleStateType,
 	OptionType,
@@ -15,7 +16,7 @@ import {
 	contentWidthArr,
 	defaultArticleState,
 } from 'src/constants/articleProps';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type TArtiArticleParamsFormProps = {
 	state: ArticleStateType;
@@ -25,13 +26,14 @@ export const ArticleParamsForm = ({
 	state,
 	setState,
 }: TArtiArticleParamsFormProps) => {
+	const formRef = useRef<HTMLFormElement | null>(null);
+
 	// стейт открытия/закрытия сайдбара и стили
-	const [isOpen, setOpen] = useState<boolean>(false);
-	const classOpen = isOpen === true ? styles.container_open : '';
+	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
 	// Обработчик открытия и закрытия сайдбара
 	const handlerArrow = () => {
-		setOpen(!isOpen);
+		setIsMenuOpen(!isMenuOpen);
 	};
 	// Обработчик сабмита
 	const handlerSubmitForm = (event: React.FormEvent<HTMLFormElement>) => {
@@ -47,14 +49,29 @@ export const ArticleParamsForm = ({
 
 	// Обработчик кнопки сброса
 	const handlerResetForm = () => {
-		setFontFamily(fontFamilyOptions[0]);
-		setFontSize(fontSizeOptions[0]);
-		setFontColor(fontColors[0]);
-		setBackgroundColor(backgroundColors[0]);
-		setWidthContent(contentWidthArr[0]);
+		setFontFamily(defaultArticleState.fontFamilyOption);
+		setFontSize(defaultArticleState.fontSizeOption);
+		setFontColor(defaultArticleState.fontColor);
+		setBackgroundColor(defaultArticleState.backgroundColor);
+		setWidthContent(defaultArticleState.contentWidth);
 
 		setState(defaultArticleState);
 	};
+
+	// Закрытие сайдбара по клику вне контейнера
+	useEffect(() => {
+		const handlerOutsideClose = (event: MouseEvent) => {
+			const target = event.target;
+			if (target instanceof Node && !formRef.current?.contains(target)) {
+				isMenuOpen && setIsMenuOpen(false);
+			}
+		};
+		window.addEventListener('mousedown', handlerOutsideClose);
+
+		return () => {
+			window.removeEventListener('mousedown', handlerOutsideClose);
+		};
+	}, [isMenuOpen]);
 
 	// Стиль шрифта
 	const [selectFontFamily, setFontFamily] = useState<OptionType>(
@@ -78,10 +95,19 @@ export const ArticleParamsForm = ({
 
 	return (
 		<>
-			<ArrowButton onClick={handlerArrow} isOpen={isOpen} />
+			<ArrowButton onClick={handlerArrow} isOpen={isMenuOpen} />
 
-			<aside className={`${styles.container} ${classOpen}`}>
-				<form className={styles.form} onSubmit={handlerSubmitForm}>
+			<aside
+				className={clsx(styles.container, {
+					[styles.container_open]: isMenuOpen,
+				})}>
+				<form
+					ref={formRef}
+					className={styles.form}
+					onSubmit={handlerSubmitForm}>
+					<Text weight={800} size={31} uppercase>
+						задайте параметры
+					</Text>
 					<Select
 						options={fontFamilyOptions}
 						selected={selectFontFamily}
