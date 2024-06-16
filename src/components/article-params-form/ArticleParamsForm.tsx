@@ -16,7 +16,8 @@ import {
 	contentWidthArr,
 	defaultArticleState,
 } from 'src/constants/articleProps';
-import { useEffect, useRef, useState } from 'react';
+import { useClose } from '../select/hooks/useClose';
+import { useRef, useState } from 'react';
 
 type TArtiArticleParamsFormProps = {
 	state: ArticleStateType;
@@ -26,7 +27,7 @@ export const ArticleParamsForm = ({
 	state,
 	setState,
 }: TArtiArticleParamsFormProps) => {
-	const formRef = useRef<HTMLFormElement | null>(null);
+	const formRef = useRef<HTMLDivElement | null>(null);
 
 	// стейт открытия/закрытия сайдбара и стили
 	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -34,6 +35,11 @@ export const ArticleParamsForm = ({
 	// Обработчик открытия и закрытия сайдбара
 	const handlerArrow = () => {
 		setIsMenuOpen(!isMenuOpen);
+	};
+
+	// Обработчик  закрытия сайдбара
+	const handleCloseMenu = () => {
+		setIsMenuOpen(false);
 	};
 	// Обработчик сабмита
 	const handlerSubmitForm = (event: React.FormEvent<HTMLFormElement>) => {
@@ -58,20 +64,12 @@ export const ArticleParamsForm = ({
 		setState(defaultArticleState);
 	};
 
-	// Закрытие сайдбара по клику вне контейнера
-	useEffect(() => {
-		const handlerOutsideClose = (event: MouseEvent) => {
-			const target = event.target;
-			if (target instanceof Node && !formRef.current?.contains(target)) {
-				isMenuOpen && setIsMenuOpen(false);
-			}
-		};
-		window.addEventListener('mousedown', handlerOutsideClose);
-
-		return () => {
-			window.removeEventListener('mousedown', handlerOutsideClose);
-		};
-	}, [isMenuOpen]);
+	// Хук для закрытия сайдбара по Esc и клику вне сайдбара
+	useClose({
+		isOpen: isMenuOpen,
+		onClose: handleCloseMenu,
+		rootRef: formRef,
+	});
 
 	// Стиль шрифта
 	const [selectFontFamily, setFontFamily] = useState<OptionType>(
@@ -94,17 +92,14 @@ export const ArticleParamsForm = ({
 	const [widthContent, setWidthContent] = useState(state.contentWidth);
 
 	return (
-		<>
+		<div ref={formRef}>
 			<ArrowButton onClick={handlerArrow} isOpen={isMenuOpen} />
 
 			<aside
 				className={clsx(styles.container, {
 					[styles.container_open]: isMenuOpen,
 				})}>
-				<form
-					ref={formRef}
-					className={styles.form}
-					onSubmit={handlerSubmitForm}>
+				<form className={styles.form} onSubmit={handlerSubmitForm}>
 					<Text weight={800} size={31} uppercase>
 						задайте параметры
 					</Text>
@@ -150,6 +145,6 @@ export const ArticleParamsForm = ({
 					</div>
 				</form>
 			</aside>
-		</>
+		</div>
 	);
 };
